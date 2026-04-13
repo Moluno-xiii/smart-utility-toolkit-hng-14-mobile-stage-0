@@ -13,7 +13,11 @@ HNG 14 mobile track stage 0 task
 
 ## Screenshots
 
-_Coming soon_
+![Onboarding screen 2](readme_images/onboarding_2.jpg)
+![Onboarding screen 3](readme_images/onboarding_3.jpg)
+![Sidebar screen](readme_images/sidebar.jpg)
+![Length route](readme_images/length_route.jpg)
+![Currency route](readme_images/currency_route.jpg)
 
 ## Tech Stack
 
@@ -59,6 +63,6 @@ _Coming soon_
 
 ## APK Download
 
-_Coming soon_
+[Appetize Link](https://appetize.io/app/b_ldzplfgx466ctjvlfz3qklzrzi)
 
 ## Built as a requirement for the HNG 14 Mobile track stage 0 task
