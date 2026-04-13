@@ -1,17 +1,64 @@
-# smart_utility_toolkit_hng_14_mobile_stage_0
+# Smart Utility Toolkit
 
-A new Flutter project.
+A sleek, responsive Flutter mobile app that provides everyday unit conversion tools in a clean, modern interface.
+HNG 14 mobile track stage 0 task
+
+## Features
+
+- **Length Converter** -- Convert between meters, kilometers, miles, feet, inches and more
+- **Temperature Converter** -- Switch between Celsius, Fahrenheit and Kelvin
+- **Weight Converter** -- Convert kilograms, grams, pounds, ounces and metric tons
+- **Currency Converter** -- Convert between 9 major currencies (USD, EUR, GBP, JPY, NGN, CAD, AUD, INR, CNY) with dummy exchange rates
+- **Dark & Light Themes** -- Toggle between themes via the navigation drawer, with preference persistence
+
+## Screenshots
+
+_Coming soon_
+
+## Tech Stack
+
+- **Flutter** (Dart SDK ^3.11.3)
+
+## Packages
+
+- **Provider** -- State management for theming
+- **Lottie** -- Onboarding animations
+- **Google Fonts** -- Font management
+- **Smooth Page Indicator** -- Onboarding page dots
+- **SharedPreferences** -- Theme preference persistence
+- **URL Launcher** -- External link handling
+- **Material 3** -- Modern design system with
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter SDK (stable channel)
+- Android Studio / VS Code with Flutter extensions
+- An Android emulator or physical device
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Installation
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/Moluno-xiii/smart-utility-toolkit-hng-14-mobile-stage-0.git
+   cd smart-utility-toolkit-hng-14-mobile-stage-0
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   flutter pub get
+   ```
+
+3. Run the app:
+   ```bash
+   flutter run
+   ```
+
+## APK Download
+
+_Coming soon_
+
+## Built as a requirement for the HNG 14 Mobile track stage 0 task
