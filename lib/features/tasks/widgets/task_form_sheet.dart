@@ -26,8 +26,9 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.task?.title ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.task?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.task?.description ?? '',
+    );
     _tagController = TextEditingController();
     _priority = widget.task?.priority ?? Priority.medium;
     _status = widget.task?.status ?? Status.pending;
@@ -113,19 +114,18 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               ),
               const SizedBox(height: 24),
 
-              // Title
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'Title',
                   prefixIcon: Icon(Icons.title),
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Title is required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Title is required'
+                    : null,
               ),
               const SizedBox(height: 16),
 
-              // Description
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
@@ -137,7 +137,6 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Priority selector
               Text(
                 'Priority',
                 style: theme.textTheme.labelLarge?.copyWith(
@@ -168,7 +167,6 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Status selector (only when editing)
               if (isEditing) ...[
                 Text(
                   'Status',
@@ -187,10 +185,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                       value: Status.inProgress,
                       label: Text('Active'),
                     ),
-                    ButtonSegment(
-                      value: Status.completed,
-                      label: Text('Done'),
-                    ),
+                    ButtonSegment(value: Status.completed, label: Text('Done')),
                   ],
                   selected: {_status},
                   onSelectionChanged: (v) => setState(() => _status = v.first),
@@ -198,7 +193,6 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                 const SizedBox(height: 16),
               ],
 
-              // Tags
               Text(
                 'Tags',
                 style: theme.textTheme.labelLarge?.copyWith(
@@ -235,21 +229,21 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                   spacing: 6,
                   runSpacing: 6,
                   children: _tags
-                      .map((tag) => Chip(
-                            label: Text(tag),
-                            deleteIcon: const Icon(Icons.close, size: 16),
-                            onDeleted: () =>
-                                setState(() => _tags.remove(tag)),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          ))
+                      .map(
+                        (tag) => Chip(
+                          label: Text(tag),
+                          deleteIcon: const Icon(Icons.close, size: 16),
+                          onDeleted: () => setState(() => _tags.remove(tag)),
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      )
                       .toList(),
                 ),
               ],
               const SizedBox(height: 28),
 
-              // Submit
               FilledButton.icon(
                 onPressed: _submit,
                 icon: Icon(isEditing ? Icons.save : Icons.add),

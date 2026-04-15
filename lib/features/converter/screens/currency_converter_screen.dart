@@ -16,6 +16,10 @@ class CurrencyConverterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ConverterCard(title: 'Currency Converter', units: _units);
+    return ConverterCard(
+      title: 'Currency Converter',
+      icon: Icons.currency_exchange,
+      units: _units,
+    );
   }
 }

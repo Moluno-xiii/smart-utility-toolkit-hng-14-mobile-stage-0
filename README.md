@@ -18,6 +18,7 @@ HNG 14 mobile track stage 0 task
 ![Sidebar screen](readme_images/sidebar.jpg)
 ![Length route](readme_images/length_route.jpg)
 ![Currency route](readme_images/currency_route.jpg)
+![Task route](readme_images/task_route.png)
 
 ## Tech Stack
 

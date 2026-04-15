@@ -70,8 +70,9 @@ class TaskService extends ChangeNotifier {
     if (index == -1) throw TaskNotFoundException(taskId);
 
     final task = _tasks[index];
-    task.status =
-        task.status == Status.completed ? Status.pending : Status.completed;
+    task.status = task.status == Status.completed
+        ? Status.pending
+        : Status.completed;
 
     await _db.writeTxn(() async {
       await _db.tasks.put(task);

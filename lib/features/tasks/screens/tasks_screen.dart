@@ -21,15 +21,25 @@ class TasksScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.task_outlined,
-              size: 64,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(
+                  alpha: 0.3,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.task_outlined,
+                size: 48,
+                color: theme.colorScheme.primary.withValues(alpha: 0.5),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               'No tasks yet',
               style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
@@ -55,29 +65,43 @@ class TasksScreen extends StatelessWidget {
 
         return Dismissible(
           key: ValueKey(task.id),
-          direction: DismissDirection.endToStart,
-          confirmDismiss: (_) => showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Delete Task'),
-              content: Text('Delete "${task.title}"?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(color: theme.colorScheme.error),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.startToEnd) {
+              _showTaskForm(context, task: task);
+              return false;
+            }
+            return await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Delete Task'),
+                content: Text('Delete "${task.title}"?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Cancel'),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text(
+                      'Delete',
+                      style: TextStyle(color: theme.colorScheme.error),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
           onDismissed: (_) => taskService.deleteTask(task.id),
           background: Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 20),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.edit_outlined, color: Colors.white),
+          ),
+          secondaryBackground: Container(
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 20),
             decoration: BoxDecoration(
@@ -87,102 +111,165 @@ class TasksScreen extends StatelessWidget {
             child: const Icon(Icons.delete_outline, color: Colors.white),
           ),
           child: Card(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () => _showTaskForm(context, task: task),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            task.title,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              decoration: isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : null,
-                              decorationThickness: 2,
-                              color: isCompleted
-                                  ? theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.4)
-                                  : null,
-                            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          task.title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            decoration: isCompleted
+                                ? TextDecoration.lineThrough
+                                : null,
+                            decorationThickness: 2,
+                            color: isCompleted
+                                ? theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.4,
+                                  )
+                                : null,
                           ),
                         ),
-                        CupertinoSwitch(
-                          value: isCompleted,
-                          activeTrackColor: theme.colorScheme.primary,
-                          onChanged: (_) =>
-                              taskService.toggleTaskStatus(task.id),
-                        ),
-                      ],
-                    ),
-                    if (task.description.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        task.description,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isCompleted
-                              ? theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.3)
-                              : theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.6),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      CupertinoSwitch(
+                        value: isCompleted,
+                        activeTrackColor: theme.colorScheme.primary,
+                        onChanged: (_) => taskService.toggleTaskStatus(task.id),
                       ),
                     ],
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        PriorityBadge(priority: task.priority),
-                        const SizedBox(width: 8),
-                        StatusBadge(status: task.status),
-                        if (task.tags.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: task.tags
-                                    .map((tag) => Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 6),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: theme.colorScheme
-                                                  .surfaceContainerHighest,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              tag,
-                                              style: theme.textTheme.labelSmall
-                                                  ?.copyWith(
-                                                color: theme
-                                                    .colorScheme.onSurface
-                                                    .withValues(alpha: 0.6),
-                                              ),
-                                            ),
-                                          ),
-                                        ))
-                                    .toList(),
+                  ),
+                  if (task.description.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      task.description,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: isCompleted
+                            ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
+                            : theme.colorScheme.onSurface.withValues(
+                                alpha: 0.6,
                               ),
-                            ),
-                          ),
-                        ],
-                      ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      PriorityBadge(priority: task.priority),
+                      const SizedBox(width: 8),
+                      StatusBadge(status: task.status),
+                      if (task.tags.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: task.tags
+                                  .map(
+                                    (tag) => Padding(
+                                      padding: const EdgeInsets.only(right: 6),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: theme
+                                              .colorScheme
+                                              .surfaceContainerHighest,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          tag,
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                                color: theme
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.6),
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const Divider(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _showTaskForm(context, task: task),
+                        icon: Icon(
+                          Icons.edit_outlined,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                        label: Text(
+                          'Edit',
+                          style: TextStyle(color: theme.colorScheme.primary),
+                        ),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      TextButton.icon(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Delete Task'),
+                              content: Text('Delete "${task.title}"?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.error,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            taskService.deleteTask(task.id);
+                          }
+                        },
+                        icon: Icon(
+                          Icons.delete_outline,
+                          size: 18,
+                          color: theme.colorScheme.error,
+                        ),
+                        label: Text(
+                          'Delete',
+                          style: TextStyle(color: theme.colorScheme.error),
+                        ),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),

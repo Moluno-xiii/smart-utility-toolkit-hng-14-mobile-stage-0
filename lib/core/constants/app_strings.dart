@@ -29,6 +29,10 @@ class AppStrings {
   static const String to = 'To';
   static const String result = 'Result';
 
+  static const String onboardingTitle4 = 'Stay Organized';
+  static const String onboardingSubtitle4 =
+      'Create, track and manage your tasks with priorities and tags.';
+
   static const String darkMode = 'Dark Mode';
   static const String about = 'About';
   static const String aboutDescription =

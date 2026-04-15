@@ -13,7 +13,7 @@ class AppTheme {
       onSurface: const Color(0xFF1C1C1E),
     );
 
-    final textTheme = GoogleFonts.interTextTheme(
+    final textTheme = GoogleFonts.aBeeZeeTextTheme(
       ThemeData(brightness: Brightness.light).textTheme,
     );
 
@@ -56,7 +56,7 @@ class AppTheme {
         elevation: 0,
         backgroundColor: const Color(0xFFF0F0F3),
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.aBeeZee(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: const Color(0xFF1C1C1E),
@@ -84,7 +84,7 @@ class AppTheme {
       brightness: Brightness.dark,
     );
 
-    final textTheme = GoogleFonts.interTextTheme(
+    final textTheme = GoogleFonts.aBeeZeeTextTheme(
       ThemeData(brightness: Brightness.dark).textTheme,
     );
 
@@ -108,7 +108,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         centerTitle: true,
         elevation: 0,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: GoogleFonts.aBeeZee(
           fontSize: 20,
           fontWeight: FontWeight.w700,
           color: colorScheme.onSurface,

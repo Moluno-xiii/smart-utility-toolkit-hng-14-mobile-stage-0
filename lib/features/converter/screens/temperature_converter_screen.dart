@@ -40,6 +40,7 @@ class TemperatureConverterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ConverterCard(
       title: 'Temperature Converter',
+      icon: Icons.thermostat,
       units: _units,
       customConvert: _convert,
     );
