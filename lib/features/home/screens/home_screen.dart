@@ -8,6 +8,8 @@ import '../../converter/screens/length_converter_screen.dart';
 import '../../converter/screens/temperature_converter_screen.dart';
 import '../../converter/screens/weight_converter_screen.dart';
 import '../../converter/screens/currency_converter_screen.dart';
+import '../../tasks/screens/tasks_screen.dart';
+import '../../tasks/widgets/task_form_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     AppStrings.temperature,
     AppStrings.weight,
     AppStrings.currency,
+    'Tasks',
   ];
 
   final List<Widget> _screens = const [
@@ -31,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TemperatureConverterScreen(),
     WeightConverterScreen(),
     CurrencyConverterScreen(),
+    TasksScreen(),
   ];
 
   @override
@@ -161,6 +165,21 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _currentIndex,
         children: _screens,
       ),
+      floatingActionButton: _currentIndex == 4
+          ? FloatingActionButton(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (_) => const TaskFormSheet(),
+              ),
+              child: const Icon(Icons.add),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
@@ -186,6 +205,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.currency_exchange_outlined),
             selectedIcon: Icon(Icons.currency_exchange),
             label: AppStrings.currency,
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.task_outlined),
+            selectedIcon: Icon(Icons.task),
+            label: 'Tasks',
           ),
         ],
       ),
