@@ -1,15 +1,31 @@
 # Smart Utility Toolkit
 
-A sleek, responsive Flutter mobile app that provides everyday unit conversion tools in a clean, modern interface.
-HNG 14 mobile track stage 0 task
+A sleek, responsive Flutter mobile app that provides everyday unit conversion tools and a task manager in a clean, modern interface.
+HNG 14 mobile track stage 0 and stage 1 tasks
 
 ## Features
+
+### Converters
 
 - **Length Converter** -- Convert between meters, kilometers, miles, feet, inches and more
 - **Temperature Converter** -- Switch between Celsius, Fahrenheit and Kelvin
 - **Weight Converter** -- Convert kilograms, grams, pounds, ounces and metric tons
 - **Currency Converter** -- Convert between 9 major currencies (USD, EUR, GBP, JPY, NGN, CAD, AUD, INR, CNY) with dummy exchange rates
+
+### Task Manager
+
+- **Create, Edit & Delete Tasks** -- Full CRUD operations with a bottom sheet form
+- **Priority Levels** -- Tag tasks as Low, Medium, or High with color-coded badges
+- **Status Tracking** -- Track tasks as Pending, In Progress, or Completed with styled badges
+- **Task Completion Toggle** -- CupertinoSwitch on each task to mark as complete, with line-through styling on completed titles
+- **Tags** -- Add and remove custom tags per task
+- **Swipe Actions** -- Swipe right to edit, swipe left to delete
+- **Persistent Storage** -- Tasks stored locally using Isar database
+
+### General
+
 - **Dark & Light Themes** -- Toggle between themes via the navigation drawer, with preference persistence
+- **Onboarding Flow** -- 4-page onboarding with Lottie animations and smooth page transitions
 
 ## Screenshots
 
@@ -18,6 +34,7 @@ HNG 14 mobile track stage 0 task
 ![Sidebar screen](readme_images/sidebar.jpg)
 ![Length route](readme_images/length_route.jpg)
 ![Currency route](readme_images/currency_route.jpg)
+![Task route](readme_images/task_route.png)
 
 ## Tech Stack
 
@@ -25,13 +42,14 @@ HNG 14 mobile track stage 0 task
 
 ## Packages
 
-- **Provider** -- State management for theming
+- **Provider** -- State management for theming and task service
+- **Isar** -- Local NoSQL database for task persistence
 - **Lottie** -- Onboarding animations
-- **Google Fonts** -- Font management
+- **Google Fonts** -- font management
 - **Smooth Page Indicator** -- Onboarding page dots
 - **SharedPreferences** -- Theme preference persistence
 - **URL Launcher** -- External link handling
-- **Material 3** -- Modern design system with
+- **Material 3** -- Modern design system
 
 ## Getting Started
 
@@ -65,4 +83,4 @@ HNG 14 mobile track stage 0 task
 
 [Appetize Link](https://appetize.io/app/b_ldzplfgx466ctjvlfz3qklzrzi)
 
-## Built as a requirement for the HNG 14 Mobile track stage 0 task
+## Built as a requirement for the HNG 14 Mobile track stage 0 and stage 1 tasks

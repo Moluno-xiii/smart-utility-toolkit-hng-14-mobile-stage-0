@@ -6,6 +6,7 @@ import 'unit_dropdown.dart';
 class ConverterCard extends StatefulWidget {
   final String title;
   final List<ConversionUnit> units;
+  final IconData icon;
   final double Function(double value, ConversionUnit from, ConversionUnit to)?
   customConvert;
 
@@ -13,6 +14,7 @@ class ConverterCard extends StatefulWidget {
     super.key,
     required this.title,
     required this.units,
+    this.icon = Icons.swap_horiz,
     this.customConvert,
   });
 
@@ -83,148 +85,236 @@ class _ConverterCardState extends State<ConverterCard> {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                widget.title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 28),
-
-              UnitDropdown(
-                key: ValueKey('from_${_fromUnit.symbol}'),
-                units: widget.units,
-                selectedUnit: _fromUnit,
-                label: 'From',
-                onChanged: (unit) {
-                  if (unit != null) {
-                    setState(() => _fromUnit = unit);
-                    _convert();
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-
-              Center(
-                child: IconButton.filled(
-                  onPressed: _swapUnits,
-                  icon: const Icon(Icons.swap_vert),
-                  style: IconButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primaryContainer,
-                    foregroundColor: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              UnitDropdown(
-                key: ValueKey('to_${_toUnit.symbol}'),
-                units: widget.units,
-                selectedUnit: _toUnit,
-                label: 'To',
-                onChanged: (unit) {
-                  if (unit != null) {
-                    setState(() => _toUnit = unit);
-                    _convert();
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-
-              TextField(
-                controller: _inputController,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withValues(alpha: 0.8),
                 ],
-                decoration: InputDecoration(
-                  labelText: 'Enter value',
-                  prefixIcon: Icon(
-                    Icons.numbers,
-                    color: theme.colorScheme.primary,
-                  ),
-                  suffixText: _fromUnit.symbol,
-                ),
-                onChanged: (_) => _convert(),
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(height: 24),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Icon(widget.icon, size: 36, color: theme.colorScheme.onPrimary),
+                const SizedBox(height: 8),
+                Text(
+                  widget.title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
 
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _result.isNotEmpty
-                    ? Container(
-                        key: ValueKey(_result),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer.withValues(
-                            alpha: 0.4,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.calculate_outlined,
-                              color: theme.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 12),
-                            Flexible(
-                              child: Text(
-                                '$_result ${_toUnit.symbol}',
-                                style: theme.textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                textAlign: TextAlign.center,
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'From',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  UnitDropdown(
+                    key: ValueKey('from_${_fromUnit.symbol}'),
+                    units: widget.units,
+                    selectedUnit: _fromUnit,
+                    label: 'Select unit',
+                    onChanged: (unit) {
+                      if (unit != null) {
+                        setState(() => _fromUnit = unit);
+                        _convert();
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: _swapUnits,
+                        icon: const Icon(Icons.swap_vert_rounded),
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'To',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  UnitDropdown(
+                    key: ValueKey('to_${_toUnit.symbol}'),
+                    units: widget.units,
+                    selectedUnit: _toUnit,
+                    label: 'Select unit',
+                    onChanged: (unit) {
+                      if (unit != null) {
+                        setState(() => _toUnit = unit);
+                        _convert();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Value',
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _inputController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+                    ],
+                    decoration: InputDecoration(
+                      hintText: 'Enter value',
+                      prefixIcon: Icon(
+                        Icons.numbers,
+                        color: theme.colorScheme.primary,
+                      ),
+                      suffixText: _fromUnit.symbol,
+                      suffixStyle: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    onChanged: (_) => _convert(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _result.isNotEmpty
+                ? Card(
+                    key: ValueKey(_result),
+                    color: theme.colorScheme.primaryContainer.withValues(
+                      alpha: 0.5,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.1,
                               ),
+                              shape: BoxShape.circle,
                             ),
-                          ],
-                        ),
-                      )
-                    : Container(
-                        key: const ValueKey('empty'),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.calculate_outlined,
+                            child: Icon(
+                              Icons.check_circle_outline,
+                              color: theme.colorScheme.primary,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Result',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.onPrimaryContainer
+                                        .withValues(alpha: 0.6),
+                                  ),
+                                ),
+                                Text(
+                                  '$_result ${_toUnit.symbol}',
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: theme
+                                            .colorScheme
+                                            .onPrimaryContainer,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Card(
+                    key: const ValueKey('empty'),
+                    color: theme.colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.calculate_outlined,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.3,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Enter a value to convert',
+                            style: theme.textTheme.bodyLarge?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
                                 alpha: 0.4,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Enter a value to convert',
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-              ),
-            ],
+                    ),
+                  ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -38,6 +38,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'color': AppColors.onboarding3,
       'colorDark': AppColors.onboarding3Dark,
     },
+    {
+      'icon': Icons.task_alt_rounded,
+      'title': AppStrings.onboardingTitle4,
+      'subtitle': AppStrings.onboardingSubtitle4,
+      'color': AppColors.onboarding4,
+      'colorDark': AppColors.onboarding4Dark,
+    },
   ];
 
   void _onNext() {
@@ -52,9 +59,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _navigateToHome() {
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const HomeScreen(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
   }
 
   @override
@@ -97,14 +110,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 itemBuilder: (context, index) {
                   final page = _pages[index];
-                  return OnboardingPage(
-                    lottieAsset: page['lottie'] as String,
-                    title: page['title'] as String,
-                    subtitle: page['subtitle'] as String,
-                    accentColor: isDark
-                        ? page['colorDark'] as Color
-                        : page['color'] as Color,
-                  );
+                  final accentColor = isDark
+                      ? page['colorDark'] as Color
+                      : page['color'] as Color;
+
+                  if (page.containsKey('lottie')) {
+                    return OnboardingPage(
+                      lottieAsset: page['lottie'] as String,
+                      title: page['title'] as String,
+                      subtitle: page['subtitle'] as String,
+                      accentColor: accentColor,
+                    );
+                  } else {
+                    return OnboardingPage(
+                      icon: page['icon'] as IconData,
+                      title: page['title'] as String,
+                      subtitle: page['subtitle'] as String,
+                      accentColor: accentColor,
+                    );
+                  }
                 },
               ),
             ),

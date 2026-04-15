@@ -20,6 +20,7 @@ class LengthConverterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ConverterCard(
       title: 'Length Converter',
+      icon: Icons.straighten,
       units: _units,
     );
   }

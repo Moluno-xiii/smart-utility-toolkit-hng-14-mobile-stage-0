@@ -18,6 +18,7 @@ class WeightConverterScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const ConverterCard(
       title: 'Weight Converter',
+      icon: Icons.fitness_center,
       units: _units,
     );
   }

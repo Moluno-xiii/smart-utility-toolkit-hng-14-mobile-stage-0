@@ -14,4 +14,7 @@ class AppColors {
   static const Color onboarding1Dark = Color(0xFF0D47A1);
   static const Color onboarding2Dark = Color(0xFFE65100);
   static const Color onboarding3Dark = Color(0xFF1B5E20);
+
+  static const Color onboarding4 = Color(0xFFF3E5F5);
+  static const Color onboarding4Dark = Color(0xFF4A148C);
 }

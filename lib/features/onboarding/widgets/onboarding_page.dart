@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 class OnboardingPage extends StatelessWidget {
-  final String lottieAsset;
+  final String? lottieAsset;
+  final IconData? icon;
   final String title;
   final String subtitle;
   final Color accentColor;
 
   const OnboardingPage({
     super.key,
-    required this.lottieAsset,
+    this.lottieAsset,
+    this.icon,
     required this.title,
     required this.subtitle,
     required this.accentColor,
-  });
+  }) : assert(lottieAsset != null || icon != null);
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +28,26 @@ class OnboardingPage extends StatelessWidget {
           const Spacer(flex: 1),
           Expanded(
             flex: 4,
-            child: Lottie.asset(
-              lottieAsset,
-              fit: BoxFit.contain,
-              repeat: true,
-            ),
+            child: lottieAsset != null
+                ? Lottie.asset(
+                    lottieAsset!,
+                    fit: BoxFit.contain,
+                    repeat: true,
+                  )
+                : Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(40),
+                      decoration: BoxDecoration(
+                        color: accentColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 80,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(height: 40),
           Text(
