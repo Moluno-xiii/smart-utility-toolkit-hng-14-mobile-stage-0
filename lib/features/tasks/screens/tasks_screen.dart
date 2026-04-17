@@ -16,6 +16,15 @@ class TasksScreen extends StatelessWidget {
     final taskService = context.watch<TaskService>();
     final tasks = taskService.tasks;
 
+    final pendingCount = tasks
+        .where((t) => t.status == Status.pending)
+        .length;
+    final completedCount = tasks
+        .where((t) => t.status == Status.completed)
+        .length;
+    final sortedTasks = [...tasks]
+      ..sort((a, b) => a.status.index.compareTo(b.status.index));
+
     if (tasks.isEmpty) {
       return Center(
         child: Column(
@@ -55,13 +64,21 @@ class TasksScreen extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: tasks.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final task = tasks[index];
-        final isCompleted = task.status == Status.completed;
+    return Column(
+      children: [
+        _StatsHeader(
+          pending: pendingCount,
+          completed: completedCount,
+          onClearAll: () => _confirmClearAll(context, taskService),
+        ),
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            itemCount: sortedTasks.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final task = sortedTasks[index];
+              final isCompleted = task.status == Status.completed;
 
         return Dismissible(
           key: ValueKey(task.id),
@@ -274,8 +291,43 @@ class TasksScreen extends StatelessWidget {
             ),
           ),
         );
-      },
+            },
+          ),
+        ),
+      ],
     );
+  }
+
+  Future<void> _confirmClearAll(
+    BuildContext context,
+    TaskService service,
+  ) async {
+    final theme = Theme.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear All Tasks'),
+        content: const Text(
+          'This will permanently delete every task. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Clear All',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await service.clearAllTasks();
+    }
   }
 
   void _showTaskForm(BuildContext context, {Task? task}) {
@@ -287,6 +339,117 @@ class TasksScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => TaskFormSheet(task: task),
+    );
+  }
+}
+
+class _StatsHeader extends StatelessWidget {
+  final int pending;
+  final int completed;
+  final VoidCallback onClearAll;
+
+  const _StatsHeader({
+    required this.pending,
+    required this.completed,
+    required this.onClearAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatChip(
+              label: 'Pending',
+              count: pending,
+              icon: Icons.schedule_outlined,
+              fg: const Color(0xFFB26A00),
+              bg: const Color(0xFFFFE0B2),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _StatChip(
+              label: 'Completed',
+              count: completed,
+              icon: Icons.check_circle_outline,
+              fg: const Color(0xFF1B5E20),
+              bg: const Color(0xFFC8E6C9),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Material(
+            color: theme.colorScheme.error.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: onClearAll,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Icon(
+                  Icons.delete_sweep_outlined,
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color fg;
+  final Color bg;
+
+  const _StatChip({
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.fg,
+    required this.bg,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: fg, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: fg,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: fg.withValues(alpha: 0.8),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

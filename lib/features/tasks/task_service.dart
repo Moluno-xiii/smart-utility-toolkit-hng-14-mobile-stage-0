@@ -65,6 +65,14 @@ class TaskService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearAllTasks() async {
+    await _db.writeTxn(() async {
+      await _db.tasks.clear();
+    });
+    _tasks.clear();
+    notifyListeners();
+  }
+
   Future<void> toggleTaskStatus(Id taskId) async {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index == -1) throw TaskNotFoundException(taskId);
