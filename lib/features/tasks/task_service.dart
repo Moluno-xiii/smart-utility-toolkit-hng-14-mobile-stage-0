@@ -73,14 +73,30 @@ class TaskService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<int> clearCompletedTasks() async {
+    final completed = _tasks
+        .where((t) => t.status == Status.completed)
+        .map((t) => t.id)
+        .toList();
+    if (completed.isEmpty) return 0;
+    await _db.writeTxn(() async {
+      await _db.tasks.deleteAll(completed);
+    });
+    _tasks.removeWhere((t) => t.status == Status.completed);
+    notifyListeners();
+    return completed.length;
+  }
+
   Future<void> toggleTaskStatus(Id taskId) async {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index == -1) throw TaskNotFoundException(taskId);
 
     final task = _tasks[index];
-    task.status = task.status == Status.completed
-        ? Status.pending
-        : Status.completed;
+    task.status = switch (task.status) {
+      Status.pending => Status.inProgress,
+      Status.inProgress => Status.completed,
+      Status.completed => Status.pending,
+    };
 
     await _db.writeTxn(() async {
       await _db.tasks.put(task);

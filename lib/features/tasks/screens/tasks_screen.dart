@@ -1,301 +1,223 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../task.dart';
 import '../task_service.dart';
+import '../widgets/task_card.dart';
+import '../widgets/task_empty_views.dart';
+import '../widgets/task_filter_bar.dart';
 import '../widgets/task_form_sheet.dart';
-import '../widgets/priority_badge.dart';
-import '../widgets/status_badge.dart';
+import '../widgets/task_stats_header.dart';
 
-class TasksScreen extends StatelessWidget {
+class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final taskService = context.watch<TaskService>();
-    final tasks = taskService.tasks;
+  State<TasksScreen> createState() => _TasksScreenState();
+}
 
-    final pendingCount = tasks
+class _TasksScreenState extends State<TasksScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  final Set<Priority> _priorityFilters = {};
+  final Set<Status> _statusFilters = {};
+  final Set<String> _tagFilters = {};
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool get _hasActiveFilters =>
+      _priorityFilters.isNotEmpty ||
+      _statusFilters.isNotEmpty ||
+      _tagFilters.isNotEmpty ||
+      _searchQuery.trim().isNotEmpty;
+
+  void _clearFilters() {
+    setState(() {
+      _priorityFilters.clear();
+      _statusFilters.clear();
+      _tagFilters.clear();
+      _searchController.clear();
+      _searchQuery = '';
+    });
+  }
+
+  List<Task> _applyFilters(List<Task> tasks) {
+    final query = _searchQuery.trim().toLowerCase();
+    return tasks.where((t) {
+      if (query.isNotEmpty) {
+        final matchTitle = t.title.toLowerCase().contains(query);
+        final matchDesc = t.description.toLowerCase().contains(query);
+        if (!matchTitle && !matchDesc) return false;
+      }
+      if (_priorityFilters.isNotEmpty &&
+          !_priorityFilters.contains(t.priority)) {
+        return false;
+      }
+      if (_statusFilters.isNotEmpty && !_statusFilters.contains(t.status)) {
+        return false;
+      }
+      if (_tagFilters.isNotEmpty &&
+          !_tagFilters.any((tag) => t.tags.contains(tag))) {
+        return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final taskService = context.watch<TaskService>();
+    final allTasks = taskService.tasks;
+
+    if (allTasks.isEmpty) {
+      return EmptyTasksView(onCreate: () => _showTaskForm(context));
+    }
+
+    final pendingCount = allTasks
         .where((t) => t.status == Status.pending)
         .length;
-    final completedCount = tasks
+    final inProgressCount = allTasks
+        .where((t) => t.status == Status.inProgress)
+        .length;
+    final completedCount = allTasks
         .where((t) => t.status == Status.completed)
         .length;
-    final sortedTasks = [...tasks]
-      ..sort((a, b) => a.status.index.compareTo(b.status.index));
 
-    if (tasks.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(
-                  alpha: 0.3,
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.task_outlined,
-                size: 48,
-                color: theme.colorScheme.primary.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'No tasks yet',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Tap + to create your first task',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+    final allTags = <String>{for (final t in allTasks) ...t.tags}.toList()
+      ..sort();
+
+    final filtered = _applyFilters(allTasks);
+    final sortedTasks = [...filtered]
+      ..sort((a, b) => a.status.index.compareTo(b.status.index));
 
     return Column(
       children: [
-        _StatsHeader(
+        TaskStatsHeader(
           pending: pendingCount,
+          inProgress: inProgressCount,
           completed: completedCount,
+          onClearCompleted: completedCount == 0
+              ? null
+              : () => _confirmClearCompleted(context, taskService),
           onClearAll: () => _confirmClearAll(context, taskService),
         ),
+        TaskFilterBar(
+          controller: _searchController,
+          onQueryChanged: (q) => setState(() => _searchQuery = q),
+          priorityFilters: _priorityFilters,
+          statusFilters: _statusFilters,
+          tagFilters: _tagFilters,
+          availableTags: allTags,
+          onPriorityToggle: (p) => setState(() {
+            _priorityFilters.contains(p)
+                ? _priorityFilters.remove(p)
+                : _priorityFilters.add(p);
+          }),
+          onStatusToggle: (s) => setState(() {
+            _statusFilters.contains(s)
+                ? _statusFilters.remove(s)
+                : _statusFilters.add(s);
+          }),
+          onTagToggle: (tag) => setState(() {
+            _tagFilters.contains(tag)
+                ? _tagFilters.remove(tag)
+                : _tagFilters.add(tag);
+          }),
+          onClearAll: _hasActiveFilters ? _clearFilters : null,
+        ),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-            itemCount: sortedTasks.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final task = sortedTasks[index];
-              final isCompleted = task.status == Status.completed;
-
-        return Dismissible(
-          key: ValueKey(task.id),
-          confirmDismiss: (direction) async {
-            if (direction == DismissDirection.startToEnd) {
-              _showTaskForm(context, task: task);
-              return false;
-            }
-            return await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Delete Task'),
-                content: Text('Delete "${task.title}"?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Cancel'),
+          child: RefreshIndicator(
+            onRefresh: () => taskService.refreshTasks(),
+            child: sortedTasks.isEmpty
+                ? NoMatchesView(onClearFilters: _clearFilters)
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                    itemCount: sortedTasks.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (context, index) {
+                      final task = sortedTasks[index];
+                      return TaskCard(
+                        task: task,
+                        onToggleStatus: () =>
+                            taskService.toggleTaskStatus(task.id),
+                        onEdit: () => _showTaskForm(context, task: task),
+                        onDelete: () =>
+                            _deleteWithUndo(context, taskService, task),
+                      );
+                    },
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: Text(
-                      'Delete',
-                      style: TextStyle(color: theme.colorScheme.error),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          onDismissed: (_) => taskService.deleteTask(task.id),
-          background: Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.edit_outlined, color: Colors.white),
-          ),
-          secondaryBackground: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.error,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.delete_outline, color: Colors.white),
-          ),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          task.title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            decoration: isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
-                            decorationThickness: 2,
-                            color: isCompleted
-                                ? theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.4,
-                                  )
-                                : null,
-                          ),
-                        ),
-                      ),
-                      CupertinoSwitch(
-                        value: isCompleted,
-                        activeTrackColor: theme.colorScheme.primary,
-                        onChanged: (_) => taskService.toggleTaskStatus(task.id),
-                      ),
-                    ],
-                  ),
-                  if (task.description.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      task.description,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isCompleted
-                            ? theme.colorScheme.onSurface.withValues(alpha: 0.3)
-                            : theme.colorScheme.onSurface.withValues(
-                                alpha: 0.6,
-                              ),
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      PriorityBadge(priority: task.priority),
-                      const SizedBox(width: 8),
-                      StatusBadge(status: task.status),
-                      if (task.tags.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: task.tags
-                                  .map(
-                                    (tag) => Padding(
-                                      padding: const EdgeInsets.only(right: 6),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: theme
-                                              .colorScheme
-                                              .surfaceContainerHighest,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          tag,
-                                          style: theme.textTheme.labelSmall
-                                              ?.copyWith(
-                                                color: theme
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.6),
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const Divider(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () => _showTaskForm(context, task: task),
-                        icon: Icon(
-                          Icons.edit_outlined,
-                          size: 18,
-                          color: theme.colorScheme.primary,
-                        ),
-                        label: Text(
-                          'Edit',
-                          style: TextStyle(color: theme.colorScheme.primary),
-                        ),
-                        style: TextButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      TextButton.icon(
-                        onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('Delete Task'),
-                              content: Text('Delete "${task.title}"?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx, true),
-                                  child: Text(
-                                    'Delete',
-                                    style: TextStyle(
-                                      color: theme.colorScheme.error,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true) {
-                            taskService.deleteTask(task.id);
-                          }
-                        },
-                        icon: Icon(
-                          Icons.delete_outline,
-                          size: 18,
-                          color: theme.colorScheme.error,
-                        ),
-                        label: Text(
-                          'Delete',
-                          style: TextStyle(color: theme.colorScheme.error),
-                        ),
-                        style: TextButton.styleFrom(
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-            },
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _deleteWithUndo(
+    BuildContext context,
+    TaskService service,
+    Task task,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await service.deleteTask(task.id);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('Deleted "${task.title}"'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () => service.createTask(task),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmClearCompleted(
+    BuildContext context,
+    TaskService service,
+  ) async {
+    final theme = Theme.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clear Completed'),
+        content: const Text(
+          'Delete all completed tasks? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              'Clear',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      final removed = await service.clearCompletedTasks();
+      if (removed == 0) return;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Cleared $removed completed task${removed == 1 ? '' : 's'}',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _confirmClearAll(
@@ -339,117 +261,6 @@ class TasksScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => TaskFormSheet(task: task),
-    );
-  }
-}
-
-class _StatsHeader extends StatelessWidget {
-  final int pending;
-  final int completed;
-  final VoidCallback onClearAll;
-
-  const _StatsHeader({
-    required this.pending,
-    required this.completed,
-    required this.onClearAll,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _StatChip(
-              label: 'Pending',
-              count: pending,
-              icon: Icons.schedule_outlined,
-              fg: const Color(0xFFB26A00),
-              bg: const Color(0xFFFFE0B2),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _StatChip(
-              label: 'Completed',
-              count: completed,
-              icon: Icons.check_circle_outline,
-              fg: const Color(0xFF1B5E20),
-              bg: const Color(0xFFC8E6C9),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Material(
-            color: theme.colorScheme.error.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: onClearAll,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Icon(
-                  Icons.delete_sweep_outlined,
-                  color: theme.colorScheme.error,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final int count;
-  final IconData icon;
-  final Color fg;
-  final Color bg;
-
-  const _StatChip({
-    required this.label,
-    required this.count,
-    required this.icon,
-    required this.fg,
-    required this.bg,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: fg, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            '$count',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: fg,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: fg.withValues(alpha: 0.8),
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
